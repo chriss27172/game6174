@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,10 +9,10 @@
 
         :root {
             --bg-color: #050508;
-            --main-neon: #00ffff;  /* Cyjan */
-            --danger-neon: #ff0055;/* Róż/Czerwień */
-            --special-neon:#ffe600;/* Złoto 6174 */
-            --accent-neon: #b000ff; /* Fiolet */
+            --main-neon: #00ffff;  /* Cyan */
+            --danger-neon: #ff0055;/* Pink/Red */
+            --special-neon:#ffe600;/* Gold 6174 */
+            --accent-neon: #b000ff; /* Purple */
         }
 
         * {
@@ -35,7 +35,7 @@
             letter-spacing: 2px;
         }
 
-        /* --- PASEK CONTRACT ADDRESS --- */
+        /* --- CONTRACT ADDRESS BAR --- */
         #ca-bar {
             display: flex;
             align-items: center;
@@ -92,7 +92,7 @@
             font-weight: bold;
         }
 
-        /* --- STATYSTYKI & NAGŁÓWEK --- */
+        /* --- STATS & HEADER --- */
         #game-header {
             display: flex;
             justify-content: space-between;
@@ -120,7 +120,7 @@
             font-weight: bold;
         }
 
-        /* --- KANWAS GRY --- */
+        /* --- GAME CANVAS --- */
         #canvas-wrapper {
             position: relative;
             border: 3px solid var(--main-neon);
@@ -135,7 +135,7 @@
             background: radial-gradient(circle, #0d0b18 0%, #040308 100%);
         }
 
-        /* NAŁOŻENIE PRZEGRANEJ / STARTU */
+        /* OVERLAY / GAME OVER / START */
         #overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -210,43 +210,43 @@
 </head>
 <body>
 
-    <!-- PASEK CA -->
+    <!-- CONTRACT BAR -->
     <div id="ca-bar">
         <div class="ca-info">
             <span class="ca-label">CA:</span>
             <span id="ca-value" class="ca-address">0x027c68e5F5C9D1126BFA900B936C6d61e86520E7</span>
         </div>
-        <button id="copy-btn" class="copy-btn">SKOPIUJ CA</button>
+        <button id="copy-btn" class="copy-btn">COPY CA</button>
     </div>
 
-    <!-- HEADER Z PUNKTAMI -->
+    <!-- HEADER STATS -->
     <div id="game-header">
-        <div class="stat-box">PUNKTY: <span id="score-val">0</span></div>
+        <div class="stat-box">SCORE: <span id="score-val">0</span></div>
         <div id="mode-status"></div>
-        <div class="stat-box">REKORD: <span id="high-val">0</span></div>
+        <div class="stat-box">HIGH SCORE: <span id="high-val">0</span></div>
     </div>
 
-    <!-- OBSZAR GRY -->
+    <!-- PLAY AREA -->
     <div id="canvas-wrapper">
         <canvas id="gameCanvas" width="800" height="500"></canvas>
         
         <div id="overlay">
             <h1 id="overlay-title">NEON GRID 6174</h1>
-            <p id="overlay-desc">Użyj Strzałek/WASD do sterowania. Unikaj czerwonych dronów!</p>
-            <p>Zbieraj cyjanowe rdzenie i szukaj potężnej <b>Stałej $6174</b>!</p>
-            <p><b>SPACJA:</b> Neon Dash (Szybki Skok)</p>
-            <button id="start-btn" class="start-btn">ROZPOCZNIJ GRAĆ</button>
+            <p id="overlay-desc">Use Arrow Keys / WASD to navigate. Avoid red drones!</p>
+            <p>Collect cyan energy cores and unleash the power of <b>$6174</b>!</p>
+            <p><b>SPACEBAR:</b> Neon Dash (Quick Surge)</p>
+            <button id="start-btn" class="start-btn">START GAME</button>
         </div>
     </div>
 
     <div id="controls-info">
-        STEROWANIE: [▲ ▼ ◄ ►] / [W A S D] = Poruszanie | [SPACJA] = Neon Dash
+        CONTROLS: [▲ ▼ ◄ ►] / [W A S D] = Move | [SPACEBAR] = Neon Dash
     </div>
 
-    <div id="toast">SKOPIOWANO CA DO SCHOWKA!</div>
+    <div id="toast">CA COPIED TO CLIPBOARD!</div>
 
     <script>
-        // --- LOGIKA KOPIOWANIA CA ---
+        // --- CA COPY LOGIC ---
         const caAddress = "0x027c68e5F5C9D1126BFA900B936C6d61e86520E7";
         const copyBtn = document.getElementById('copy-btn');
         const toast = document.getElementById('toast');
@@ -258,7 +258,7 @@
             });
         });
 
-        // --- SILNIK GRY CANVA 2D ---
+        // --- 2D CANVAS GAME ENGINE ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
@@ -275,12 +275,12 @@
         let highScore = localStorage.getItem('neon_high_score') || 0;
         highEl.innerText = highScore;
 
-        // Klawisze
+        // Keys State
         const keys = {};
         window.addEventListener('keydown', e => { keys[e.code] = true; });
         window.addEventListener('keyup', e => { keys[e.code] = false; });
 
-        // Gracz
+        // Player Object
         const player = {
             x: 400,
             y: 250,
@@ -292,13 +292,13 @@
             kaprekarTimer: 0
         };
 
-        // Obiekty gry
+        // Game Entities
         let energyCores = [];
         let enemies = [];
         let kaprekarItems = [];
         let particles = [];
 
-        // Generowanie cząsteczek
+        // Particle FX
         function createParticles(x, y, color, count = 10) {
             for (let i = 0; i < count; i++) {
                 particles.push({
@@ -312,7 +312,7 @@
             }
         }
 
-        // Spawn Energii
+        // Spawn Energy Core
         function spawnEnergy() {
             if (energyCores.length < 5) {
                 energyCores.push({
@@ -324,11 +324,11 @@
             }
         }
 
-        // Spawn Wroga
+        // Spawn Enemy
         function spawnEnemy() {
             if (enemies.length < 8 + Math.floor(score / 50)) {
                 let x, y;
-                // Spawn poza graczem
+                // Spawn away from player
                 do {
                     x = Math.random() * (canvas.width - 40) + 20;
                     y = Math.random() * (canvas.height - 40) + 20;
@@ -344,7 +344,7 @@
             }
         }
 
-        // Spawn $6174 Item
+        // Spawn $6174 Power-up
         function spawnKaprekar() {
             if (kaprekarItems.length === 0 && !player.isKaprekarMode && Math.random() < 0.3) {
                 kaprekarItems.push({
@@ -355,15 +355,15 @@
             }
         }
 
-        // Aktywacja Trybu $6174
+        // Activate $6174 Mode
         function activateKaprekarMode() {
             player.isKaprekarMode = true;
-            player.kaprekarTimer = 300; // ok. 5 sekund przy 60fps
+            player.kaprekarTimer = 300; // ~5 seconds @ 60fps
             modeStatusEl.innerText = "★ $6174 GOD MODE ACTIVE! ★";
             createParticles(player.x, player.y, '#ffe600', 30);
         }
 
-        // Reset Gry
+        // Reset Game State
         function initGame() {
             score = 0;
             scoreEl.innerText = score;
@@ -385,7 +385,7 @@
             overlay.style.display = 'none';
         }
 
-        // Koniec Gry
+        // Game Over Handler
         function gameOver() {
             gameRunning = false;
             if (score > highScore) {
@@ -394,16 +394,16 @@
                 highEl.innerText = highScore;
             }
             overlayTitle.innerText = "GAME OVER";
-            overlayDesc.innerHTML = `Twój wynik: <b>${score}</b>! Spróbuj ponownie i zdobądź moc $6174!`;
-            startBtn.innerText = "ZAGRAJ PONOWNIE";
+            overlayDesc.innerHTML = `Your Score: <b>${score}</b>! Try again and harness $6174 power!`;
+            startBtn.innerText = "PLAY AGAIN";
             overlay.style.display = 'flex';
         }
 
-        // --- PĘTLA AKTUALIZACJI LOGIKI ---
+        // --- UPDATE LOGIC LOOP ---
         function update() {
             if (!gameRunning) return;
 
-            // Ruch Gracza
+            // Player Movement
             let moveX = 0;
             let moveY = 0;
 
@@ -412,7 +412,7 @@
             if (keys['ArrowLeft'] || keys['KeyA']) moveX -= 1;
             if (keys['ArrowRight'] || keys['KeyD']) moveX += 1;
 
-            // Normalizacja prędkości ukosów
+            // Normalize diagonal movement
             if (moveX !== 0 && moveY !== 0) {
                 moveX *= 0.7071;
                 moveY *= 0.7071;
@@ -420,10 +420,10 @@
 
             let speed = player.speed;
 
-            // SPACJA = Dash
+            // SPACEBAR = Dash
             if (keys['Space'] && player.dashCooldown <= 0) {
                 speed *= 3.5;
-                player.dashCooldown = 40; // Cooldown w klatkach
+                player.dashCooldown = 40;
                 createParticles(player.x, player.y, player.isKaprekarMode ? '#ffe600' : '#00ffff', 12);
             }
 
@@ -432,11 +432,11 @@
             player.x += moveX * speed;
             player.y += moveY * speed;
 
-            // Granice planszy
+            // Boundaries
             player.x = Math.max(player.radius, Math.min(canvas.width - player.radius, player.x));
             player.y = Math.max(player.radius, Math.min(canvas.height - player.radius, player.y));
 
-            // Logika Trybu $6174
+            // $6174 Mode Logic
             if (player.isKaprekarMode) {
                 player.kaprekarTimer--;
                 if (player.kaprekarTimer <= 0) {
@@ -445,7 +445,7 @@
                 }
             }
 
-            // Aktualizacja cząsteczek
+            // Particle Updates
             particles.forEach((p, idx) => {
                 p.x += p.vx;
                 p.y += p.vy;
@@ -453,7 +453,7 @@
                 if (p.life <= 0) particles.splice(idx, 1);
             });
 
-            // Zbieranie Energii
+            // Energy Pickup
             energyCores.forEach((core, idx) => {
                 let dist = Math.hypot(player.x - core.x, player.y - core.y);
                 if (dist < player.radius + core.radius) {
@@ -468,7 +468,7 @@
                 }
             });
 
-            // Zbieranie $6174 Itemu
+            // $6174 Pickup
             kaprekarItems.forEach((item, idx) => {
                 let dist = Math.hypot(player.x - item.x, player.y - item.y);
                 if (dist < player.radius + item.radius) {
@@ -479,26 +479,26 @@
                 }
             });
 
-            // Ruch Wrogów & Kolizje
+            // Enemy Movement & Collision
             enemies.forEach((enemy, idx) => {
                 enemy.x += enemy.vx;
                 enemy.y += enemy.vy;
 
-                // Odbijanie od ścian
+                // Wall bounces
                 if (enemy.x < enemy.radius || enemy.x > canvas.width - enemy.radius) enemy.vx *= -1;
                 if (enemy.y < enemy.radius || enemy.y > canvas.height - enemy.radius) enemy.vy *= -1;
 
-                // Kolizja z Gracze
+                // Player Collision
                 let dist = Math.hypot(player.x - enemy.x, player.y - enemy.y);
                 if (dist < player.radius + enemy.radius) {
                     if (player.isKaprekarMode) {
-                        // Niszczymy wroga w trybie boga!
+                        // Destroy enemy in God Mode
                         createParticles(enemy.x, enemy.y, '#ff0055', 15);
                         enemies.splice(idx, 1);
                         score += 5;
                         scoreEl.innerText = score;
                     } else {
-                        // Przegrana
+                        // Game Over
                         createParticles(player.x, player.y, '#ff0055', 25);
                         gameOver();
                     }
@@ -506,13 +506,13 @@
             });
         }
 
-        // --- PĘTLA RYSOWANIA (RENDER) ---
+        // --- RENDER LOOP ---
         function render() {
-            // Czyszczenie kanwy
+            // Clear Canvas
             ctx.fillStyle = player.isKaprekarMode ? 'rgba(20, 15, 0, 0.3)' : 'rgba(5, 5, 10, 0.3)';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Rysowanie Siatki Neonowej (Grid)
+            // Neon Grid Background
             ctx.strokeStyle = player.isKaprekarMode ? 'rgba(255, 230, 0, 0.08)' : 'rgba(0, 255, 255, 0.05)';
             ctx.lineWidth = 1;
             for (let x = 0; x < canvas.width; x += 40) {
@@ -522,7 +522,7 @@
                 ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
             }
 
-            // Cząsteczki
+            // Particles
             particles.forEach(p => {
                 ctx.fillStyle = p.color;
                 ctx.globalAlpha = p.life;
@@ -532,7 +532,7 @@
             });
             ctx.globalAlpha = 1.0;
 
-            // Rdzenie Energii (Cyjanowe)
+            // Energy Cores (Cyan)
             energyCores.forEach(core => {
                 ctx.shadowBlur = 15;
                 ctx.shadowColor = '#00ffff';
@@ -542,7 +542,7 @@
                 ctx.fill();
             });
 
-            // $6174 Znaki (Złote)
+            // $6174 Items (Gold)
             kaprekarItems.forEach(item => {
                 ctx.shadowBlur = 20;
                 ctx.shadowColor = '#ffe600';
@@ -553,7 +553,7 @@
                 ctx.fillText('$6174', item.x, item.y);
             });
 
-            // Czerwone Drony / Wrogowie
+            // Enemies (Red)
             enemies.forEach(enemy => {
                 ctx.shadowBlur = 12;
                 ctx.shadowColor = '#ff0055';
@@ -563,7 +563,7 @@
                 ctx.fill();
             });
 
-            // Player (Gracz)
+            // Player
             ctx.shadowBlur = player.isKaprekarMode ? 30 : 20;
             ctx.shadowColor = player.isKaprekarMode ? '#ffe600' : '#00ffff';
             ctx.fillStyle = player.isKaprekarMode ? '#ffe600' : '#00ffff';
@@ -572,7 +572,7 @@
             ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
             ctx.fill();
 
-            // Pasek Gotowości Dash
+            // Dash Cooldown Ring
             if (player.dashCooldown > 0) {
                 ctx.strokeStyle = '#aaa';
                 ctx.lineWidth = 2;
@@ -581,10 +581,10 @@
                 ctx.stroke();
             }
 
-            ctx.shadowBlur = 0; // Reset cienia
+            ctx.shadowBlur = 0;
         }
 
-        // Główna pętla
+        // Main Loop
         function gameLoop() {
             update();
             render();
