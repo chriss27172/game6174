@@ -3,366 +3,596 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Neon Collector 6174</title>
+    <title>KAPREKAR 6174: Neon Grid Odyssey</title>
     <style>
-        /* --- STYLIZACJA NEONOWA --- */
         @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
         :root {
-            --bg-color: #08080c;
-            --main-neon: #0ff; /* Cyjan */
-            --secondary-neon: #f0f; /* Magenta */
-            --special-neon: #ff0; /* Żółty Kaprekara */
-            --text-color: #fff;
-            --shadow: 0 0 10px, 0 0 20px, 0 0 30px;
+            --bg-color: #050508;
+            --main-neon: #00ffff;  /* Cyjan */
+            --danger-neon: #ff0055;/* Róż/Czerwień */
+            --special-neon:#ffe600;/* Złoto 6174 */
+            --accent-neon: #b000ff; /* Fiolet */
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
         }
 
         body {
             background-color: var(--bg-color);
-            color: var(--text-color);
+            color: #fff;
             font-family: 'VT323', monospace;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             min-height: 100vh;
             margin: 0;
+            padding: 15px;
             overflow-x: hidden;
             letter-spacing: 2px;
-            padding: 20px 0;
-            box-sizing: border-box;
         }
 
-        /* --- PASKA CA (CONTRACT ADDRESS) --- */
-        #ca-container {
+        /* --- PASEK CONTRACT ADDRESS --- */
+        #ca-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(10, 10, 20, 0.9);
+            border: 2px solid var(--main-neon);
+            box-shadow: 0 0 15px var(--main-neon);
+            padding: 8px 18px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            max-width: 800px;
+            width: 100%;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        .ca-info {
             display: flex;
             align-items: center;
             gap: 10px;
-            background: rgba(15, 15, 25, 0.8);
-            border: 1px solid var(--main-neon);
-            box-shadow: 0 0 10px var(--main-neon);
-            padding: 8px 16px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 1.1rem;
-            max-width: 90%;
-            flex-wrap: wrap;
-            justify-content: center;
+            font-size: 1.2rem;
         }
 
-        .ca-title {
-            color: var(--secondary-neon);
-            text-shadow: 0 0 5px var(--secondary-neon);
+        .ca-label {
+            color: var(--special-neon);
+            text-shadow: 0 0 8px var(--special-neon);
             font-weight: bold;
         }
 
         .ca-address {
-            color: var(--text-color);
+            color: #fff;
+            font-size: 1rem;
+            letter-spacing: 1px;
             word-break: break-all;
-            font-size: 0.95rem;
         }
 
         .copy-btn {
             background: transparent;
-            border: 1px solid var(--main-neon);
+            border: 2px solid var(--main-neon);
             color: var(--main-neon);
             font-family: 'VT323', monospace;
-            padding: 4px 12px;
-            font-size: 1rem;
+            padding: 4px 14px;
+            font-size: 1.1rem;
             cursor: pointer;
-            transition: all 0.2s;
-            border-radius: 4px;
+            transition: all 0.2s ease;
             text-shadow: 0 0 5px var(--main-neon);
+            border-radius: 4px;
         }
 
         .copy-btn:hover {
             background: var(--main-neon);
-            color: var(--bg-color);
-            box-shadow: 0 0 10px var(--main-neon);
+            color: #000;
+            box-shadow: 0 0 15px var(--main-neon);
+            font-weight: bold;
         }
 
-        /* Toast notification */
+        /* --- STATYSTYKI & NAGŁÓWEK --- */
+        #game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 8px;
+        }
+
+        .stat-box {
+            font-size: 1.6rem;
+            text-shadow: 0 0 8px var(--main-neon);
+            color: var(--main-neon);
+        }
+
+        .stat-box span {
+            color: #fff;
+        }
+
+        #mode-status {
+            font-size: 1.5rem;
+            color: var(--special-neon);
+            text-shadow: 0 0 10px var(--special-neon);
+            min-height: 30px;
+            font-weight: bold;
+        }
+
+        /* --- KANWAS GRY --- */
+        #canvas-wrapper {
+            position: relative;
+            border: 3px solid var(--main-neon);
+            box-shadow: 0 0 25px var(--main-neon), inset 0 0 15px rgba(0,255,255,0.2);
+            border-radius: 6px;
+            overflow: hidden;
+            background: #000;
+        }
+
+        canvas {
+            display: block;
+            background: radial-gradient(circle, #0d0b18 0%, #040308 100%);
+        }
+
+        /* NAŁOŻENIE PRZEGRANEJ / STARTU */
+        #overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 5, 10, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        #overlay h1 {
+            font-size: 3.5rem;
+            color: var(--special-neon);
+            text-shadow: 0 0 20px var(--special-neon);
+            margin: 0 0 10px 0;
+            text-align: center;
+        }
+
+        #overlay p {
+            font-size: 1.4rem;
+            color: #ccc;
+            margin: 5px 0;
+            text-align: center;
+            max-width: 80%;
+        }
+
+        .start-btn {
+            margin-top: 25px;
+            background: transparent;
+            border: 3px solid var(--special-neon);
+            color: var(--special-neon);
+            font-family: 'VT323', monospace;
+            padding: 10px 30px;
+            font-size: 2rem;
+            cursor: pointer;
+            text-shadow: 0 0 10px var(--special-neon);
+            box-shadow: 0 0 15px var(--special-neon);
+            transition: all 0.2s;
+            border-radius: 6px;
+        }
+
+        .start-btn:hover {
+            background: var(--special-neon);
+            color: #000;
+            box-shadow: 0 0 30px var(--special-neon);
+            font-weight: bold;
+        }
+
+        /* CONTROL INFO */
+        #controls-info {
+            margin-top: 10px;
+            font-size: 1.2rem;
+            color: #888;
+            text-align: center;
+        }
+
         #toast {
             position: fixed;
             bottom: 20px;
             background: var(--special-neon);
-            color: var(--bg-color);
-            padding: 8px 16px;
-            font-size: 1.2rem;
+            color: #000;
+            padding: 8px 20px;
+            font-size: 1.4rem;
             font-weight: bold;
             border-radius: 4px;
-            box-shadow: 0 0 15px var(--special-neon);
+            box-shadow: 0 0 20px var(--special-neon);
             display: none;
-            z-index: 1000;
+            z-index: 100;
         }
-
-        h1 {
-            color: var(--main-neon);
-            text-shadow: var(--shadow) var(--main-neon);
-            font-size: 3rem;
-            margin: 10px 0;
-        }
-
-        /* --- GŁÓWNY RDZEŃ (PRZYCISK) --- */
-        #game-core {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            background: transparent;
-            border: 4px solid var(--main-neon);
-            box-shadow: var(--shadow) var(--main-neon), inset var(--shadow) var(--main-neon);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
-            color: var(--text-color);
-            transition: all 0.1s ease;
-            position: relative;
-            animation: pulse 2s infinite;
-            margin: 10px 0;
-        }
-
-        #game-core:active {
-            transform: scale(0.95);
-            border-color: #fff;
-            box-shadow: 0 0 5px #fff, 0 0 10px #fff, inset 0 0 5px #fff;
-        }
-
-        /* Stan Specjalny $6174 */
-        #game-core.special-active {
-            border-color: var(--special-neon);
-            box-shadow: var(--shadow) var(--special-neon), inset var(--shadow) var(--special-neon);
-            color: var(--special-neon);
-            animation: pulse-special 0.5s infinite;
-        }
-
-        #special-label {
-            position: absolute;
-            top: -30px;
-            font-size: 1.2rem;
-            color: var(--special-neon);
-            display: none;
-            text-shadow: var(--shadow) var(--special-neon);
-        }
-
-        /* --- INTERFEJS --- */
-        #stats-container {
-            text-align: center;
-            margin: 20px 0;
-            min-width: 300px;
-        }
-
-        .stat-label { font-size: 1.2rem; color: #aaa; }
-        .stat-value {
-            font-size: 2.5rem;
-            color: var(--secondary-neon);
-            text-shadow: var(--shadow) var(--secondary-neon);
-        }
-
-        #upgrades-container {
-            display: flex;
-            gap: 20px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .upgrade-btn {
-            background: transparent;
-            border: 2px solid var(--secondary-neon);
-            color: var(--secondary-neon);
-            font-family: 'VT323', monospace;
-            padding: 10px 20px;
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-shadow: 0 0 5px var(--secondary-neon);
-        }
-
-        .upgrade-btn:hover:not(:disabled) {
-            background: var(--secondary-neon);
-            color: var(--bg-color);
-            box-shadow: var(--shadow) var(--secondary-neon);
-        }
-
-        .upgrade-btn:disabled {
-            border-color: #444;
-            color: #444;
-            text-shadow: none;
-            cursor: not-allowed;
-        }
-
-        /* --- ANIMACJE --- */
-        @keyframes pulse {
-            0% { box-shadow: 0 0 10px var(--main-neon), inset 0 0 10px var(--main-neon); }
-            50% { box-shadow: 0 0 30px var(--main-neon), inset 0 0 20px var(--main-neon); }
-            100% { box-shadow: 0 0 10px var(--main-neon), inset 0 0 10px var(--main-neon); }
-        }
-
-        @keyframes pulse-special {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); box-shadow: 0 0 40px var(--special-neon); }
-            100% { transform: scale(1); }
-        }
-
     </style>
 </head>
 <body>
 
-    <!-- PASEK CA Z MOŻLIWOŚCIĄ SKOPIOWANIA -->
-    <div id="ca-container">
-        <span class="ca-title">CA:</span>
-        <span id="ca-value" class="ca-address">0x027c68e5F5C9D1126BFA900B936C6d61e86520E7</span>
-        <button id="copy-btn" class="copy-btn">KOPIUJ</button>
-    </div>
-
-    <h1>NEON COLLECTOR</h1>
-
-    <div id="game-core">
-        <span id="special-label">$6174</span>
-        <span id="core-symbol">✦</span>
-    </div>
-
-    <div id="stats-container">
-        <div>
-            <span class="stat-label">Energia:</span><br>
-            <span id="energy-display" class="stat-value">0</span>
+    <!-- PASEK CA -->
+    <div id="ca-bar">
+        <div class="ca-info">
+            <span class="ca-label">CA:</span>
+            <span id="ca-value" class="ca-address">0x027c68e5F5C9D1126BFA900B936C6d61e86520E7</span>
         </div>
-        <div style="margin-top: 10px;">
-            <span class="stat-label">APS (Auto-Energia/sek):</span> 
-            <span id="aps-display" style="color: var(--main-neon);">0</span>
+        <button id="copy-btn" class="copy-btn">SKOPIUJ CA</button>
+    </div>
+
+    <!-- HEADER Z PUNKTAMI -->
+    <div id="game-header">
+        <div class="stat-box">PUNKTY: <span id="score-val">0</span></div>
+        <div id="mode-status"></div>
+        <div class="stat-box">REKORD: <span id="high-val">0</span></div>
+    </div>
+
+    <!-- OBSZAR GRY -->
+    <div id="canvas-wrapper">
+        <canvas id="gameCanvas" width="800" height="500"></canvas>
+        
+        <div id="overlay">
+            <h1 id="overlay-title">NEON GRID 6174</h1>
+            <p id="overlay-desc">Użyj Strzałek/WASD do sterowania. Unikaj czerwonych dronów!</p>
+            <p>Zbieraj cyjanowe rdzenie i szukaj potężnej <b>Stałej $6174</b>!</p>
+            <p><b>SPACJA:</b> Neon Dash (Szybki Skok)</p>
+            <button id="start-btn" class="start-btn">ROZPOCZNIJ GRAĆ</button>
         </div>
     </div>
 
-    <div id="upgrades-container">
-        <button id="upgrade-click" class="upgrade-btn">Silniejsze Klik (+1) [Koszt: 10]</button>
-        <button id="upgrade-auto" class="upgrade-btn">Auto-Zbieracz (+1 APS) [Koszt: 50]</button>
+    <div id="controls-info">
+        STEROWANIE: [▲ ▼ ◄ ►] / [W A S D] = Poruszanie | [SPACJA] = Neon Dash
     </div>
 
-    <div id="toast">SKOPIOWANO CA!</div>
+    <div id="toast">SKOPIOWANO CA DO SCHOWKA!</div>
 
     <script>
-        /* --- LOGIKA KOPIOWANIA CA --- */
+        // --- LOGIKA KOPIOWANIA CA ---
         const caAddress = "0x027c68e5F5C9D1126BFA900B936C6d61e86520E7";
         const copyBtn = document.getElementById('copy-btn');
         const toast = document.getElementById('toast');
 
         copyBtn.addEventListener('click', () => {
             navigator.clipboard.writeText(caAddress).then(() => {
-                // Pokaż powiadomienie
                 toast.style.display = 'block';
-                setTimeout(() => {
-                    toast.style.display = 'none';
-                }, 2000);
-            }).catch(err => {
-                console.error("Błąd podczas kopiowania: ", err);
+                setTimeout(() => { toast.style.display = 'none'; }, 2000);
             });
         });
 
-        /* --- LOGIKA GRY JS --- */
+        // --- SILNIK GRY CANVA 2D ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
 
-        // Stan gry
-        let game = {
-            energy: 0,
-            energyPerClick: 1,
-            autoEnergyPerSecond: 0,
-            clickUpgradeCost: 10,
-            autoUpgradeCost: 50,
-            isSpecialActive: false,
-            specialMultiplier: 10,
-            specialDuration: 7000
+        const scoreEl = document.getElementById('score-val');
+        const highEl = document.getElementById('high-val');
+        const modeStatusEl = document.getElementById('mode-status');
+        const overlay = document.getElementById('overlay');
+        const overlayTitle = document.getElementById('overlay-title');
+        const overlayDesc = document.getElementById('overlay-desc');
+        const startBtn = document.getElementById('start-btn');
+
+        let gameRunning = false;
+        let score = 0;
+        let highScore = localStorage.getItem('neon_high_score') || 0;
+        highEl.innerText = highScore;
+
+        // Klawisze
+        const keys = {};
+        window.addEventListener('keydown', e => { keys[e.code] = true; });
+        window.addEventListener('keyup', e => { keys[e.code] = false; });
+
+        // Gracz
+        const player = {
+            x: 400,
+            y: 250,
+            radius: 12,
+            speed: 5,
+            color: '#00ffff',
+            dashCooldown: 0,
+            isKaprekarMode: false,
+            kaprekarTimer: 0
         };
 
-        // Elementy DOM
-        const els = {
-            energy: document.getElementById('energy-display'),
-            aps: document.getElementById('aps-display'),
-            core: document.getElementById('game-core'),
-            specialLabel: document.getElementById('special-label'),
-            coreSymbol: document.getElementById('core-symbol'),
-            btnClick: document.getElementById('upgrade-click'),
-            btnAuto: document.getElementById('upgrade-auto')
-        };
+        // Obiekty gry
+        let energyCores = [];
+        let enemies = [];
+        let kaprekarItems = [];
+        let particles = [];
 
-        // --- FUNKCJE GŁÓWNE ---
-
-        function updateUI() {
-            els.energy.innerText = Math.floor(game.energy);
-            els.aps.innerText = game.autoEnergyPerSecond.toFixed(1);
-            
-            els.btnClick.innerText = `Silniejsze Klik (+1) [Koszt: ${game.clickUpgradeCost}]`;
-            els.btnClick.disabled = game.energy < game.clickUpgradeCost;
-
-            els.btnAuto.innerText = `Auto-Zbieracz (+1 APS) [Koszt: ${game.autoUpgradeCost}]`;
-            els.btnAuto.disabled = game.energy < game.autoUpgradeCost;
+        // Generowanie cząsteczek
+        function createParticles(x, y, color, count = 10) {
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 6,
+                    vy: (Math.random() - 0.5) * 6,
+                    life: 1.0,
+                    color: color
+                });
+            }
         }
 
-        // Kliknięcie w rdzeń
-        els.core.addEventListener('click', () => {
-            let gain = game.energyPerClick;
-            if (game.isSpecialActive) {
-                gain *= game.specialMultiplier;
+        // Spawn Energii
+        function spawnEnergy() {
+            if (energyCores.length < 5) {
+                energyCores.push({
+                    x: Math.random() * (canvas.width - 40) + 20,
+                    y: Math.random() * (canvas.height - 40) + 20,
+                    radius: 8,
+                    pulse: 0
+                });
             }
-            game.energy += gain;
-            updateUI();
-        });
-
-        // Ulepszenia
-        els.btnClick.addEventListener('click', () => {
-            if (game.energy >= game.clickUpgradeCost) {
-                game.energy -= game.clickUpgradeCost;
-                game.energyPerClick += 1;
-                game.clickUpgradeCost = Math.ceil(game.clickUpgradeCost * 1.5);
-                updateUI();
-            }
-        });
-
-        els.btnAuto.addEventListener('click', () => {
-            if (game.energy >= game.autoUpgradeCost) {
-                game.energy -= game.autoUpgradeCost;
-                game.autoEnergyPerSecond += 1;
-                game.autoUpgradeCost = Math.ceil(game.autoUpgradeCost * 1.6);
-                updateUI();
-            }
-        });
-
-        // --- MECHANIKA $6174 (SPECIAL) ---
-
-        function activateSpecial() {
-            if (game.isSpecialActive) return;
-            
-            game.isSpecialActive = true;
-            els.core.classList.add('special-active');
-            els.specialLabel.style.display = 'block';
-            els.coreSymbol.innerText = '$';
-
-            setTimeout(() => {
-                game.isSpecialActive = false;
-                els.core.classList.remove('special-active');
-                els.specialLabel.style.display = 'none';
-                els.coreSymbol.innerText = '✦';
-            }, game.specialDuration);
         }
 
-        // --- PĘTLE GRY ---
+        // Spawn Wroga
+        function spawnEnemy() {
+            if (enemies.length < 8 + Math.floor(score / 50)) {
+                let x, y;
+                // Spawn poza graczem
+                do {
+                    x = Math.random() * (canvas.width - 40) + 20;
+                    y = Math.random() * (canvas.height - 40) + 20;
+                } while (Math.hypot(player.x - x, player.y - y) < 150);
 
-        setInterval(() => {
-            if (game.autoEnergyPerSecond > 0) {
-                game.energy += game.autoEnergyPerSecond;
-                updateUI();
+                enemies.push({
+                    x: x,
+                    y: y,
+                    radius: 10,
+                    vx: (Math.random() - 0.5) * 3,
+                    vy: (Math.random() - 0.5) * 3
+                });
             }
-        }, 1000);
+        }
 
-        setInterval(() => {
-            if (!game.isSpecialActive && Math.random() < 0.20) {
-                activateSpecial();
+        // Spawn $6174 Item
+        function spawnKaprekar() {
+            if (kaprekarItems.length === 0 && !player.isKaprekarMode && Math.random() < 0.3) {
+                kaprekarItems.push({
+                    x: Math.random() * (canvas.width - 60) + 30,
+                    y: Math.random() * (canvas.height - 60) + 30,
+                    radius: 16
+                });
             }
-        }, 10000);
+        }
 
-        // Start
-        updateUI();
+        // Aktywacja Trybu $6174
+        function activateKaprekarMode() {
+            player.isKaprekarMode = true;
+            player.kaprekarTimer = 300; // ok. 5 sekund przy 60fps
+            modeStatusEl.innerText = "★ $6174 GOD MODE ACTIVE! ★";
+            createParticles(player.x, player.y, '#ffe600', 30);
+        }
 
+        // Reset Gry
+        function initGame() {
+            score = 0;
+            scoreEl.innerText = score;
+            player.x = canvas.width / 2;
+            player.y = canvas.height / 2;
+            player.isKaprekarMode = false;
+            player.kaprekarTimer = 0;
+            modeStatusEl.innerText = "";
+            
+            energyCores = [];
+            enemies = [];
+            kaprekarItems = [];
+            particles = [];
+
+            for (let i = 0; i < 4; i++) spawnEnergy();
+            for (let i = 0; i < 3; i++) spawnEnemy();
+
+            gameRunning = true;
+            overlay.style.display = 'none';
+        }
+
+        // Koniec Gry
+        function gameOver() {
+            gameRunning = false;
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('neon_high_score', highScore);
+                highEl.innerText = highScore;
+            }
+            overlayTitle.innerText = "GAME OVER";
+            overlayDesc.innerHTML = `Twój wynik: <b>${score}</b>! Spróbuj ponownie i zdobądź moc $6174!`;
+            startBtn.innerText = "ZAGRAJ PONOWNIE";
+            overlay.style.display = 'flex';
+        }
+
+        // --- PĘTLA AKTUALIZACJI LOGIKI ---
+        function update() {
+            if (!gameRunning) return;
+
+            // Ruch Gracza
+            let moveX = 0;
+            let moveY = 0;
+
+            if (keys['ArrowUp'] || keys['KeyW']) moveY -= 1;
+            if (keys['ArrowDown'] || keys['KeyS']) moveY += 1;
+            if (keys['ArrowLeft'] || keys['KeyA']) moveX -= 1;
+            if (keys['ArrowRight'] || keys['KeyD']) moveX += 1;
+
+            // Normalizacja prędkości ukosów
+            if (moveX !== 0 && moveY !== 0) {
+                moveX *= 0.7071;
+                moveY *= 0.7071;
+            }
+
+            let speed = player.speed;
+
+            // SPACJA = Dash
+            if (keys['Space'] && player.dashCooldown <= 0) {
+                speed *= 3.5;
+                player.dashCooldown = 40; // Cooldown w klatkach
+                createParticles(player.x, player.y, player.isKaprekarMode ? '#ffe600' : '#00ffff', 12);
+            }
+
+            if (player.dashCooldown > 0) player.dashCooldown--;
+
+            player.x += moveX * speed;
+            player.y += moveY * speed;
+
+            // Granice planszy
+            player.x = Math.max(player.radius, Math.min(canvas.width - player.radius, player.x));
+            player.y = Math.max(player.radius, Math.min(canvas.height - player.radius, player.y));
+
+            // Logika Trybu $6174
+            if (player.isKaprekarMode) {
+                player.kaprekarTimer--;
+                if (player.kaprekarTimer <= 0) {
+                    player.isKaprekarMode = false;
+                    modeStatusEl.innerText = "";
+                }
+            }
+
+            // Aktualizacja cząsteczek
+            particles.forEach((p, idx) => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= 0.03;
+                if (p.life <= 0) particles.splice(idx, 1);
+            });
+
+            // Zbieranie Energii
+            energyCores.forEach((core, idx) => {
+                let dist = Math.hypot(player.x - core.x, player.y - core.y);
+                if (dist < player.radius + core.radius) {
+                    let pointsGained = player.isKaprekarMode ? 10 : 1;
+                    score += pointsGained;
+                    scoreEl.innerText = score;
+                    createParticles(core.x, core.y, '#00ffff', 8);
+                    energyCores.splice(idx, 1);
+                    spawnEnergy();
+                    spawnEnemy();
+                    spawnKaprekar();
+                }
+            });
+
+            // Zbieranie $6174 Itemu
+            kaprekarItems.forEach((item, idx) => {
+                let dist = Math.hypot(player.x - item.x, player.y - item.y);
+                if (dist < player.radius + item.radius) {
+                    score += 50;
+                    scoreEl.innerText = score;
+                    activateKaprekarMode();
+                    kaprekarItems.splice(idx, 1);
+                }
+            });
+
+            // Ruch Wrogów & Kolizje
+            enemies.forEach((enemy, idx) => {
+                enemy.x += enemy.vx;
+                enemy.y += enemy.vy;
+
+                // Odbijanie od ścian
+                if (enemy.x < enemy.radius || enemy.x > canvas.width - enemy.radius) enemy.vx *= -1;
+                if (enemy.y < enemy.radius || enemy.y > canvas.height - enemy.radius) enemy.vy *= -1;
+
+                // Kolizja z Gracze
+                let dist = Math.hypot(player.x - enemy.x, player.y - enemy.y);
+                if (dist < player.radius + enemy.radius) {
+                    if (player.isKaprekarMode) {
+                        // Niszczymy wroga w trybie boga!
+                        createParticles(enemy.x, enemy.y, '#ff0055', 15);
+                        enemies.splice(idx, 1);
+                        score += 5;
+                        scoreEl.innerText = score;
+                    } else {
+                        // Przegrana
+                        createParticles(player.x, player.y, '#ff0055', 25);
+                        gameOver();
+                    }
+                }
+            });
+        }
+
+        // --- PĘTLA RYSOWANIA (RENDER) ---
+        function render() {
+            // Czyszczenie kanwy
+            ctx.fillStyle = player.isKaprekarMode ? 'rgba(20, 15, 0, 0.3)' : 'rgba(5, 5, 10, 0.3)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Rysowanie Siatki Neonowej (Grid)
+            ctx.strokeStyle = player.isKaprekarMode ? 'rgba(255, 230, 0, 0.08)' : 'rgba(0, 255, 255, 0.05)';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < canvas.width; x += 40) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += 40) {
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+            }
+
+            // Cząsteczki
+            particles.forEach(p => {
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = p.life;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1.0;
+
+            // Rdzenie Energii (Cyjanowe)
+            energyCores.forEach(core => {
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = '#00ffff';
+                ctx.fillStyle = '#00ffff';
+                ctx.beginPath();
+                ctx.arc(core.x, core.y, core.radius, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // $6174 Znaki (Złote)
+            kaprekarItems.forEach(item => {
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = '#ffe600';
+                ctx.fillStyle = '#ffe600';
+                ctx.font = '20px VT323';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('$6174', item.x, item.y);
+            });
+
+            // Czerwone Drony / Wrogowie
+            enemies.forEach(enemy => {
+                ctx.shadowBlur = 12;
+                ctx.shadowColor = '#ff0055';
+                ctx.fillStyle = '#ff0055';
+                ctx.beginPath();
+                ctx.arc(enemy.x, enemy.y, enemy.radius, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Player (Gracz)
+            ctx.shadowBlur = player.isKaprekarMode ? 30 : 20;
+            ctx.shadowColor = player.isKaprekarMode ? '#ffe600' : '#00ffff';
+            ctx.fillStyle = player.isKaprekarMode ? '#ffe600' : '#00ffff';
+            
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Pasek Gotowości Dash
+            if (player.dashCooldown > 0) {
+                ctx.strokeStyle = '#aaa';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(player.x, player.y, player.radius + 6, 0, (Math.PI * 2) * (1 - player.dashCooldown / 40));
+                ctx.stroke();
+            }
+
+            ctx.shadowBlur = 0; // Reset cienia
+        }
+
+        // Główna pętla
+        function gameLoop() {
+            update();
+            render();
+            requestAnimationFrame(gameLoop);
+        }
+
+        startBtn.addEventListener('click', initGame);
+        requestAnimationFrame(gameLoop);
     </script>
 </body>
 </html>
