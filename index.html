@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Collector 6174</title>
+    <style>
+        /* --- STYLIZACJA NEONOWA --- */
+        @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+        :root {
+            --bg-color: #08080c;
+            --main-neon: #0ff; /* Cyjan */
+            --secondary-neon: #f0f; /* Magenta */
+            --special-neon: #ff0; /* Żółty Kaprekara */
+            --text-color: #fff;
+            --shadow: 0 0 10px, 0 0 20px, 0 0 30px;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'VT323', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow-x: hidden;
+            letter-spacing: 2px;
+            padding: 20px 0;
+            box-sizing: border-box;
+        }
+
+        /* --- PASKA CA (CONTRACT ADDRESS) --- */
+        #ca-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(15, 15, 25, 0.8);
+            border: 1px solid var(--main-neon);
+            box-shadow: 0 0 10px var(--main-neon);
+            padding: 8px 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            max-width: 90%;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .ca-title {
+            color: var(--secondary-neon);
+            text-shadow: 0 0 5px var(--secondary-neon);
+            font-weight: bold;
+        }
+
+        .ca-address {
+            color: var(--text-color);
+            word-break: break-all;
+            font-size: 0.95rem;
+        }
+
+        .copy-btn {
+            background: transparent;
+            border: 1px solid var(--main-neon);
+            color: var(--main-neon);
+            font-family: 'VT323', monospace;
+            padding: 4px 12px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-radius: 4px;
+            text-shadow: 0 0 5px var(--main-neon);
+        }
+
+        .copy-btn:hover {
+            background: var(--main-neon);
+            color: var(--bg-color);
+            box-shadow: 0 0 10px var(--main-neon);
+        }
+
+        /* Toast notification */
+        #toast {
+            position: fixed;
+            bottom: 20px;
+            background: var(--special-neon);
+            color: var(--bg-color);
+            padding: 8px 16px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 4px;
+            box-shadow: 0 0 15px var(--special-neon);
+            display: none;
+            z-index: 1000;
+        }
+
+        h1 {
+            color: var(--main-neon);
+            text-shadow: var(--shadow) var(--main-neon);
+            font-size: 3rem;
+            margin: 10px 0;
+        }
+
+        /* --- GŁÓWNY RDZEŃ (PRZYCISK) --- */
+        #game-core {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: transparent;
+            border: 4px solid var(--main-neon);
+            box-shadow: var(--shadow) var(--main-neon), inset var(--shadow) var(--main-neon);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: var(--text-color);
+            transition: all 0.1s ease;
+            position: relative;
+            animation: pulse 2s infinite;
+            margin: 10px 0;
+        }
+
+        #game-core:active {
+            transform: scale(0.95);
+            border-color: #fff;
+            box-shadow: 0 0 5px #fff, 0 0 10px #fff, inset 0 0 5px #fff;
+        }
+
+        /* Stan Specjalny $6174 */
+        #game-core.special-active {
+            border-color: var(--special-neon);
+            box-shadow: var(--shadow) var(--special-neon), inset var(--shadow) var(--special-neon);
+            color: var(--special-neon);
+            animation: pulse-special 0.5s infinite;
+        }
+
+        #special-label {
+            position: absolute;
+            top: -30px;
+            font-size: 1.2rem;
+            color: var(--special-neon);
+            display: none;
+            text-shadow: var(--shadow) var(--special-neon);
+        }
+
+        /* --- INTERFEJS --- */
+        #stats-container {
+            text-align: center;
+            margin: 20px 0;
+            min-width: 300px;
+        }
+
+        .stat-label { font-size: 1.2rem; color: #aaa; }
+        .stat-value {
+            font-size: 2.5rem;
+            color: var(--secondary-neon);
+            text-shadow: var(--shadow) var(--secondary-neon);
+        }
+
+        #upgrades-container {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .upgrade-btn {
+            background: transparent;
+            border: 2px solid var(--secondary-neon);
+            color: var(--secondary-neon);
+            font-family: 'VT323', monospace;
+            padding: 10px 20px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-shadow: 0 0 5px var(--secondary-neon);
+        }
+
+        .upgrade-btn:hover:not(:disabled) {
+            background: var(--secondary-neon);
+            color: var(--bg-color);
+            box-shadow: var(--shadow) var(--secondary-neon);
+        }
+
+        .upgrade-btn:disabled {
+            border-color: #444;
+            color: #444;
+            text-shadow: none;
+            cursor: not-allowed;
+        }
+
+        /* --- ANIMACJE --- */
+        @keyframes pulse {
+            0% { box-shadow: 0 0 10px var(--main-neon), inset 0 0 10px var(--main-neon); }
+            50% { box-shadow: 0 0 30px var(--main-neon), inset 0 0 20px var(--main-neon); }
+            100% { box-shadow: 0 0 10px var(--main-neon), inset 0 0 10px var(--main-neon); }
+        }
+
+        @keyframes pulse-special {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); box-shadow: 0 0 40px var(--special-neon); }
+            100% { transform: scale(1); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- PASEK CA Z MOŻLIWOŚCIĄ SKOPIOWANIA -->
+    <div id="ca-container">
+        <span class="ca-title">CA:</span>
+        <span id="ca-value" class="ca-address">0x027c68e5F5C9D1126BFA900B936C6d61e86520E7</span>
+        <button id="copy-btn" class="copy-btn">KOPIUJ</button>
+    </div>
+
+    <h1>NEON COLLECTOR</h1>
+
+    <div id="game-core">
+        <span id="special-label">$6174</span>
+        <span id="core-symbol">✦</span>
+    </div>
+
+    <div id="stats-container">
+        <div>
+            <span class="stat-label">Energia:</span><br>
+            <span id="energy-display" class="stat-value">0</span>
+        </div>
+        <div style="margin-top: 10px;">
+            <span class="stat-label">APS (Auto-Energia/sek):</span> 
+            <span id="aps-display" style="color: var(--main-neon);">0</span>
+        </div>
+    </div>
+
+    <div id="upgrades-container">
+        <button id="upgrade-click" class="upgrade-btn">Silniejsze Klik (+1) [Koszt: 10]</button>
+        <button id="upgrade-auto" class="upgrade-btn">Auto-Zbieracz (+1 APS) [Koszt: 50]</button>
+    </div>
+
+    <div id="toast">SKOPIOWANO CA!</div>
+
+    <script>
+        /* --- LOGIKA KOPIOWANIA CA --- */
+        const caAddress = "0x027c68e5F5C9D1126BFA900B936C6d61e86520E7";
+        const copyBtn = document.getElementById('copy-btn');
+        const toast = document.getElementById('toast');
+
+        copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(caAddress).then(() => {
+                // Pokaż powiadomienie
+                toast.style.display = 'block';
+                setTimeout(() => {
+                    toast.style.display = 'none';
+                }, 2000);
+            }).catch(err => {
+                console.error("Błąd podczas kopiowania: ", err);
+            });
+        });
+
+        /* --- LOGIKA GRY JS --- */
+
+        // Stan gry
+        let game = {
+            energy: 0,
+            energyPerClick: 1,
+            autoEnergyPerSecond: 0,
+            clickUpgradeCost: 10,
+            autoUpgradeCost: 50,
+            isSpecialActive: false,
+            specialMultiplier: 10,
+            specialDuration: 7000
+        };
+
+        // Elementy DOM
+        const els = {
+            energy: document.getElementById('energy-display'),
+            aps: document.getElementById('aps-display'),
+            core: document.getElementById('game-core'),
+            specialLabel: document.getElementById('special-label'),
+            coreSymbol: document.getElementById('core-symbol'),
+            btnClick: document.getElementById('upgrade-click'),
+            btnAuto: document.getElementById('upgrade-auto')
+        };
+
+        // --- FUNKCJE GŁÓWNE ---
+
+        function updateUI() {
+            els.energy.innerText = Math.floor(game.energy);
+            els.aps.innerText = game.autoEnergyPerSecond.toFixed(1);
+            
+            els.btnClick.innerText = `Silniejsze Klik (+1) [Koszt: ${game.clickUpgradeCost}]`;
+            els.btnClick.disabled = game.energy < game.clickUpgradeCost;
+
+            els.btnAuto.innerText = `Auto-Zbieracz (+1 APS) [Koszt: ${game.autoUpgradeCost}]`;
+            els.btnAuto.disabled = game.energy < game.autoUpgradeCost;
+        }
+
+        // Kliknięcie w rdzeń
+        els.core.addEventListener('click', () => {
+            let gain = game.energyPerClick;
+            if (game.isSpecialActive) {
+                gain *= game.specialMultiplier;
+            }
+            game.energy += gain;
+            updateUI();
+        });
+
+        // Ulepszenia
+        els.btnClick.addEventListener('click', () => {
+            if (game.energy >= game.clickUpgradeCost) {
+                game.energy -= game.clickUpgradeCost;
+                game.energyPerClick += 1;
+                game.clickUpgradeCost = Math.ceil(game.clickUpgradeCost * 1.5);
+                updateUI();
+            }
+        });
+
+        els.btnAuto.addEventListener('click', () => {
+            if (game.energy >= game.autoUpgradeCost) {
+                game.energy -= game.autoUpgradeCost;
+                game.autoEnergyPerSecond += 1;
+                game.autoUpgradeCost = Math.ceil(game.autoUpgradeCost * 1.6);
+                updateUI();
+            }
+        });
+
+        // --- MECHANIKA $6174 (SPECIAL) ---
+
+        function activateSpecial() {
+            if (game.isSpecialActive) return;
+            
+            game.isSpecialActive = true;
+            els.core.classList.add('special-active');
+            els.specialLabel.style.display = 'block';
+            els.coreSymbol.innerText = '$';
+
+            setTimeout(() => {
+                game.isSpecialActive = false;
+                els.core.classList.remove('special-active');
+                els.specialLabel.style.display = 'none';
+                els.coreSymbol.innerText = '✦';
+            }, game.specialDuration);
+        }
+
+        // --- PĘTLE GRY ---
+
+        setInterval(() => {
+            if (game.autoEnergyPerSecond > 0) {
+                game.energy += game.autoEnergyPerSecond;
+                updateUI();
+            }
+        }, 1000);
+
+        setInterval(() => {
+            if (!game.isSpecialActive && Math.random() < 0.20) {
+                activateSpecial();
+            }
+        }, 10000);
+
+        // Start
+        updateUI();
+
+    </script>
+</body>
+</html>
